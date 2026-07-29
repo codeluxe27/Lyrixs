@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyrixa — Paroles</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/lyrixa_lyre_L.png" type="image/png">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  body {
+    background-color: #14131B;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(198,150,58,0.10), transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(47,107,99,0.14), transparent 45%);
+  }
+
+  @keyframes spin-disc {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .disc {
+    animation: spin-disc 2.4s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .disc { animation: none; }
+  }
+
+  .sprockets {
+    background-image: radial-gradient(circle, #14131B 3.5px, transparent 3.6px);
+    background-size: 22px 100%;
+    background-position: 8px center;
+    background-repeat: repeat-x;
+    height: 16px;
+  }
+
+  .paper-rules {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      #E4D9C0 32px
+    );
+  }
+
+  ::selection { background: #C6963A; color: #14131B; }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid #C6963A;
+    outline-offset: 2px;
+  }
+
+  .social-link {
+    color: #78716c;
+    display: inline-block;
+    transition: all 0.25s ease;
+  }
+  .social-link:hover {
+    color: #C6963A;
+    filter: drop-shadow(0 0 8px rgba(198,150,58,0.6));
+    transform: scale(1.15);
+  }
+</style>
+</head>
+
+<body class="min-h-screen text-paper font-ui antialiased">
+
+  <div class="max-w-3xl mx-auto px-5 sm:px-6 py-14 sm:py-20 relative">
+
+    <div class="absolute top-6 left-5 sm:left-6 flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+      <img src="assets/lyrixa_lyre_L.png" alt="Lyrixa" class="w-12 h-12" />
+      <span class="font-display italic text-xl text-gold drop-shadow-[0_0_8px_rgba(198,150,58,0.4)]">Lyrixa</span>
+    </div>
+
+    <header class="mb-12 text-center">
+      <p class="text-xs sm:text-sm tracking-[0.3em] uppercase text-gold/80 font-semibold mb-4">
+        Feuille de paroles — à la demande
+      </p>
+      <h1 class="font-display italic text-4xl sm:text-6xl leading-[1.05] text-paper">
+        Lyrixa
+      </h1>
+      <p class="mt-4 text-stone-400 text-sm sm:text-base max-w-md mx-auto">
+        Entrez un artiste et un titre. Lyrixa retrouve les paroles et les met en page,
+        prêtes à imprimer.
+      </p>
+      <p id="searchCount" class="mt-6 text-lg sm:text-xl font-display italic text-gold drop-shadow-[0_0_12px_rgba(198,150,58,0.5)]">
+        0 recherches effectuées sur Lyrixa
+      </p>
+    </header>
+
+    <form id="searchForm" class="bg-stage2 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl shadow-black/40">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label for="artist" class="block text-[11px] uppercase tracking-widest text-stone-400 mb-1.5 ml-1">
+            Artiste
+          </label>
+          <input
+            id="artist"
+            type="text"
+            required
+            placeholder="ex. Stromae"
+            class="focus-ring w-full bg-stage border border-white/10 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-stone-500 text-sm"
+          />
+        </div>
+        <div>
+          <label for="title" class="block text-[11px] uppercase tracking-widest text-stone-400 mb-1.5 ml-1">
+            Titre du morceau
+          </label>
+          <input
+            id="title"
+            type="text"
+            required
+            placeholder="ex. Papaoutai"
+            class="focus-ring w-full bg-stage border border-white/10 rounded-lg px-3.5 py-2.5 text-paper placeholder:text-stone-500 text-sm"
+          />
+        </div>
+      </div>
+      <button
+        type="submit"
+        id="submitBtn"
+        class="focus-ring mt-4 w-full sm:w-auto sm:px-8 inline-flex items-center justify-center gap-2 bg-gold hover:bg-goldlight transition-colors text-stage font-ui font-semibold text-sm rounded-lg py-2.5 px-6"
+      >
+        Trouver les paroles
+      </button>
+    </form>
+
+    <div id="resultZone" class="mt-10"></div>
+
+    <footer class="mt-16 text-center">
+      <div class="flex items-center justify-center gap-5 mb-3">
+        <a href="https://github.com/codeluxe27" target="_blank" rel="noopener noreferrer" class="social-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </a>
+        <a href="https://www.facebook.com/profile.php?id=61590232691424" target="_blank" rel="noopener noreferrer" class="social-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a href="https://www.youtube.com/@CodeLux27" target="_blank" rel="noopener noreferrer" class="social-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+      </div>
+      <p class="text-[11px] text-stone-500">
+        Paroles fournies par l'API publique LRCLIB. Les textes récupérés restent la propriété
+        de leurs auteurs et éditeurs — usage personnel recommandé.
+      </p>
+    </footer>
+  </div>
+
+<script>
+  const form = document.getElementById('searchForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const resultZone = document.getElementById('resultZone');
+
+  let currentArtist = '';
+  let currentTitle = '';
+  let currentLyrics = '';
+  let currentAlbumName = '';
+  let currentDuration = 0;
+
+  let currentYear = '';
+  let currentGenre = '';
+  let searchCount = 0;
+  const searchCountEl = document.getElementById('searchCount');
+
+  async function initSearchCount() {
+    try {
+      const res = await fetch('/api/count');
+      const data = await res.json();
+      searchCount = data.searchCount || 0;
+    } catch {}
+    searchCountEl.textContent = `${searchCount} recherches effectuées sur Lyrixa`;
+  }
+  initSearchCount();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const artist = document.getElementById('artist').value.trim();
+    const title = document.getElementById('title').value.trim();
+    if (!artist || !title) return;
+
+    currentArtist = artist;
+    currentTitle = title;
+
+    renderLoading(artist, title);
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+    try {
+      const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`;
+      const res = await fetch(url);
+
+      if (res.status === 404) {
+        renderError(artist, title, "Aucune parole trouvée pour cet artiste et ce titre. Vérifiez l'orthographe.");
+        return;
+      }
+
+      if (!res.ok) {
+        renderError(artist, title, "Le service de paroles n'a pas pu répondre. Réessayez dans un instant.");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.instrumental) {
+        renderError(artist, title, "Ce morceau est référencé comme instrumental : aucune parole à afficher.");
+        return;
+      }
+
+      if (!data.plainLyrics) {
+        renderError(artist, title, "Aucune parole trouvée pour cet artiste et ce titre. Vérifiez l'orthographe.");
+        return;
+      }
+
+      currentLyrics = data.plainLyrics.trim();
+      try {
+        const r = await fetch('/api/count/increment', { method: 'POST' });
+        const d = await r.json();
+        searchCount = d.searchCount;
+      } catch {}
+      searchCountEl.textContent = `${searchCount} recherches effectuées sur Lyrixa`;
+      currentAlbumName = data.albumName || '';
+      currentDuration = data.duration || 0;
+
+      const meta = await fetchItunesMeta(artist, title);
+
+      currentYear = meta.year || '';
+      currentGenre = meta.genre || '';
+
+      renderLyrics(artist, title, currentLyrics);
+
+    } catch (err) {
+      renderError(artist, title, "Impossible de joindre le service de paroles. Vérifiez votre connexion.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+  });
+
+  function renderLoading(artist, title) {
+    resultZone.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-16 gap-5">
+        <svg class="disc" width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="30" fill="#1C1A26" stroke="#C6963A" stroke-width="1.5"/>
+          <circle cx="32" cy="32" r="21" fill="none" stroke="#C6963A" stroke-opacity="0.35" stroke-width="1"/>
+          <circle cx="32" cy="32" r="14" fill="none" stroke="#C6963A" stroke-opacity="0.35" stroke-width="1"/>
+          <circle cx="32" cy="32" r="7" fill="#C6963A"/>
+          <circle cx="32" cy="32" r="2" fill="#14131B"/>
+        </svg>
+        <p class="text-stone-400 text-sm">
+          Recherche de « ${escapeHtml(title)} » — ${escapeHtml(artist)}…
+        </p>
+      </div>
+    `;
+  }
+
+  function renderError(artist, title, message) {
+    resultZone.innerHTML = `
+      <div class="border border-rose/30 bg-rose/10 rounded-2xl p-6 sm:p-8 text-center">
+        <p class="font-display italic text-xl text-paper mb-2">Introuvable</p>
+        <p class="text-stone-300 text-sm">${escapeHtml(message)}</p>
+      </div>
+    `;
+  }
+
+  function renderLyrics(artist, title, lyrics) {
+    const lineCount = lyrics.split('\n').filter(l => l.trim().length > 0).length;
+
+    const metaParts = [];
+    if (currentAlbumName) metaParts.push(`Album : ${escapeHtml(currentAlbumName)}`);
+    if (currentYear) metaParts.push(`Année : ${escapeHtml(currentYear)}`);
+    if (currentGenre) metaParts.push(`Genre : ${escapeHtml(currentGenre)}`);
+    if (currentDuration) metaParts.push(`Durée : ${formatDuration(currentDuration)}`);
+
+    const metaHtml = metaParts.length
+      ? `<div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[12px] text-ink/50">${metaParts.join(' · ')}</div>`
+      : '';
+
+    resultZone.innerHTML = `
+      <div class="rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
+        <div class="sprockets bg-paper"></div>
+        <div class="bg-paper text-ink px-6 sm:px-10 py-8 sm:py-10">
+          <div class="flex items-start gap-4 border-b border-paperline pb-5 mb-6">
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] uppercase tracking-[0.25em] text-teal font-semibold mb-1">Feuille de paroles</p>
+              <h2 class="font-display italic text-2xl sm:text-3xl leading-tight truncate">${escapeHtml(title)}</h2>
+              <p class="text-sm text-ink/60 mt-1">${escapeHtml(artist)}</p>
+              ${metaHtml}
+            </div>
+            <div class="shrink-0 flex flex-col gap-2">
+              <button
+                id="copyBtn"
+                class="focus-ring inline-flex items-center gap-2 border border-ink/20 text-ink text-xs font-semibold uppercase tracking-wide rounded-full px-4 py-2.5 hover:bg-ink/5 transition-colors"
+              >
+                Copier les paroles
+              </button>
+              <button
+                id="downloadBtn"
+                class="focus-ring inline-flex items-center gap-2 bg-ink text-paper text-xs font-semibold uppercase tracking-wide rounded-full px-4 py-2.5 hover:bg-teal transition-colors"
+              >
+                Télécharger le PDF
+              </button>
+            </div>
+          </div>
+          <div class="paper-rules font-mono text-[13.5px] sm:text-sm leading-[32px] whitespace-pre-wrap">${escapeHtml(lyrics)}</div>
+          <p class="mt-6 text-[11px] text-ink/40">${lineCount} lignes · via LRCLIB</p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('downloadBtn').addEventListener('click', () => downloadPdf(artist, title, lyrics));
+    document.getElementById('copyBtn').addEventListener('click', copyLyrics);
+  }
+
+  async function fetchItunesMeta(artist, title) {
+    try {
+      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(artist + ' ' + title)}&limit=1&entity=song`;
+      const res = await fetch(url);
+      if (!res.ok) return {};
+      const data = await res.json();
+      if (!data.resultCount) return {};
+      const item = data.results[0];
+      return {
+        year: item.releaseDate ? new Date(item.releaseDate).getFullYear().toString() : '',
+        genre: item.primaryGenreName || '',
+      };
+    } catch {
+      return {};
+    }
+  }
+
+  function copyLyrics() {
+    if (!currentLyrics) return;
+    navigator.clipboard.writeText(currentLyrics).then(() => {
+      const btn = document.getElementById('copyBtn');
+      const orig = btn.innerHTML;
+      btn.innerHTML = 'Copié !';
+      btn.classList.add('bg-green-100', 'border-green-400', 'text-green-800');
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.classList.remove('bg-green-100', 'border-green-400', 'text-green-800');
+      }, 2000);
+    }).catch(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.innerHTML = 'Erreur';
+      setTimeout(() => { btn.innerHTML = 'Copier les paroles'; }, 2000);
+    });
+  }
+
+  function formatDuration(seconds) {
+    if (!seconds) return '';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function downloadPdf(artist, title, lyrics) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 56;
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    doc.setFont('times', 'italic');
+    doc.setFontSize(20);
+    doc.setTextColor(20, 19, 27);
+    doc.text(title, margin, y);
+    y += 22;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(90, 90, 90);
+    doc.text(artist, margin, y);
+    y += 10;
+
+    doc.setDrawColor(198, 150, 58);
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 26;
+
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(30, 27, 24);
+
+    const lineHeight = 16;
+    const rawLines = lyrics.split('\n');
+
+    rawLines.forEach((rawLine) => {
+      const wrapped = doc.splitTextToSize(rawLine.length ? rawLine : ' ', maxWidth);
+      wrapped.forEach((wLine) => {
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(wLine, margin, y);
+        y += lineHeight;
+      });
+    });
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Lyrixa · ${i}/${pageCount}`, pageWidth - margin, pageHeight - 24, { align: 'right' });
+    }
+
+    const safeName = `${artist}-${title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    doc.save(`${safeName || 'paroles'}.pdf`);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>
