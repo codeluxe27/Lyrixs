@@ -27,7 +27,7 @@ app.post('/api/count/increment', (req, res) => {
   res.json({ searchCount: next });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Lyrixa lancé sur http://localhost:${PORT}`);
 });
